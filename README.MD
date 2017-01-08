@@ -2,6 +2,8 @@
 
 A light weight wrapper for Firebase Queue to give you a slightly opinionated but fast way to use the queue.
 
+[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
+
 ## How Is Firebase Queue Handler (FQH) Opinionated?
 
 FQH started with the idea that you can let the client write to a queue node without read access, process the request in node, and then write the results to a resolved node in the database. FQH eliminates/minimizes/bypasses the need to set up a REST API server to process requests and instead has the client interfacing with the database the entire time. 
@@ -42,6 +44,14 @@ userQueue.listen();
 ### QHQueue([options])
 
 #### options
+
+| Property | Type | Brief Description | Required |
+| ------------- | ------- | ------------- | -----:|
+| firebaseRef | Object | The firebase database reference object | Yes |
+| name | String | The name of the key to use for the queue | Yes |
+| handlers | Object | The object with functions for each action the queue can process as the key | Yes |
+| resolveKey | String | The key to use when writing data for the client to read | No |
+| debug | Boolean | Whether to show the debug logs in the console or not | No |
 
 ##### firebaseRef
 
@@ -100,6 +110,103 @@ Type: `boolean`<br>
 Default: `false`
 
 Set debug logs to be on/off from the start for the queue.
+
+### Wiring Up The Client
+
+So you're probably wondering by now "how the heck do I make this work?", well lets dive in.
+
+Remember, the idea of this tool is to mitigate the need for a REST interface and make the developer's life much easier. 
+
+*Note, the rest of this guide assumes that you are using the root database object, if you are using a child of that, you will need to refactor any examples here for your needs. The examples are also using the web SDK, if you're using java or swift for your clients, adjust your code accordingly*
+
+Firebase Queues by default listen to the `tasks` child of the queue path chosen. FQH will create your queue off of the `queue` node. In this example our queue name is `users`. The path to push a request to the queue will be `/queue/users/tasks`.
+
+The request object has two pieces: `data` and `action`. The `action` is what we want the queue to do when it gets the request, and the `data` is any necessary information such as the user id, meta data you might need, user input, etc. Here's an example of a request to set up our user's profile.
+
+```js
+var requestData = {
+	action: 'createUser',
+	data: {
+		username: 'NorthMcCormick',
+		uid: '2gq9VYiWBKS57WPJsv3sahgKs9v1',
+		profilePicture: 'data:image/png,TG9sIGknbSBpbXByZXNzZWQgeW91IHRvb2sgdGhlIHRpbWUgdG8gZGVjb2RlIHRoaXM='
+	}
+}
+
+var refRequest = ref.child('queue/users/tasks').push();
+refRequest.set(requestData);
+
+```
+
+And that's all you have to do on the clients end to write to the queue. 
+
+### More about handlers
+
+Handlers are the actual logic you write to get your queue to process a request. In the example above we sent a request with the action `createUser`. We will now define a handler object, that has a property with that same name that can process the request. Here's our starting point:
+
+```js
+var handlers = {
+	createUser: function(res) {
+		// Do your creating, validating, emailing, etc
+
+		res.resolve();
+
+		return false;
+	}
+}
+```
+
+As you might notice, we already have something we can use: `res`! I have chosen to use `res` as shorthand for `resources`. You can use whatever you would like. This `res` object contains some vital pieces. It will be how we send progress updates, resolve, reject, get the queue settings, and most importantly get our data from the request!
+
+Here is what it looks like:
+
+```js
+res = {
+	data: { // The data from our request
+		username: 'NorthMcCormick',
+		uid: '2gq9VYiWBKS57WPJsv3sahgKs9v1',
+		profilePicture: 'data:image/png,TG9sIGknbSBpbXByZXNzZWQgeW91IHRvb2sgdGhlIHRpbWUgdG8gZGVjb2RlIHRoaXM='
+	},
+	progress: function(){}, // This is how we update the request's progress
+	resolve: function(){}, // This is how we resolve, or finish, the request
+	reject: function(){}, // This is how we reject the request
+	ref: new Firebase(), // This is our Firebase database reference that we set when we created the queue
+	meta: { // This will hold other bits of data we may need
+		queueResolve: 'usersResolve' 
+	}
+}
+```
+
+
+
+
+
+## Roadmap
+
+What I'm looking at implementing for my own software and that will probably translate into this tool. Issue requests might land here too, who knows!
+
+### Planned
+
+##### Automatic queue item expiration/cleanup
+
+Have the tool automatically clean up or retry requests in the queues
+
+##### Adding more options
+
+A lot of this stuff can be refactored to be options, so that will probably happen as people request it
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
