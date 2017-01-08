@@ -2,7 +2,7 @@
 
 A light weight wrapper for Firebase Queue to give you a slightly opinionated but fast way to use the queue.
 
-[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
+<img src="http://northmccormick.com/wp-content/uploads/2017/01/build-with-love@2x.png" width="164" height="auto" />
 
 ## How Is Firebase Queue Handler (FQH) Opinionated?
 
@@ -291,7 +291,7 @@ refRequest.set(requestData);
 
 // Listen on the resolve node for the referral code to show the user!
 
-var referralRef = ref.child('queueResponses/usersResolve/' + refRequest.key);
+var referralRef = ref.child('queueResponses/users/' + refRequest.key);
 referralRef.on('value', function(snapshot) {
 	console.log('We got the referral code: ' + snapshot.val());
 
