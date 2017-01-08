@@ -1,13 +1,15 @@
 var Firebase = require('firebase'),
-	QHQueue = require('firebase-qh').QHQueue,
-	QHConfig = require('firebase-qh').QHConfig,
+	QHConfig = require('../../index.js').QHConfig,
+	QHManager = require('../../index.js').QHManager,
 	userHandlers = require('./handlers/userHandlers.js'),
 	config = require('./creds.json');
 
 var ref = new Firebase('https://' + config.firebaseLink + '.firebaseio.com/');
 
-// Creating our queue
-var userQueue = new QHQueue({
+var QueueManager = new QHManager();
+
+// Creating our queue using the manager
+var userQueue = QueueManager.createQueue({
 	firebaseRef: ref,
 	name: 'users',
 	handlers: userHandlers,
@@ -21,8 +23,8 @@ ref.authWithCustomToken(config.firebaseKey, function(error, authData) {
 	}else{
 		console.log('Authed');
 
-		// Tell the queue to start listening for requests
-		userQueue.listen();
+		// Tell all the queues we have to start listening
+		QueueManager.listenOnAllQueues();
 	}
 });
 
