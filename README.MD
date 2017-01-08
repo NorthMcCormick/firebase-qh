@@ -1,4 +1,4 @@
-![Alt text](/../master/logo.png?raw=true "Logo")
+![Alt text](https://github.com/northmccormick/firebase-qh/blob/master/logo.png?raw=true "Logo")
 
 # Firebase Queue Handler
 
