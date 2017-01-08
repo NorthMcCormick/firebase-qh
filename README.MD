@@ -35,7 +35,7 @@ var handlers = {
 			foo: "Bar"
 		};
 
-		return QHResponse(myResponse);
+		return new QHResponse(myResponse);
 	}
 };
 
@@ -320,7 +320,7 @@ var handlers = {
 
 			res.resolve();
 
-			return QHResponse({
+			return new QHResponse({
 				referralCode: referralCode
 			});
 		}, function(error) {
