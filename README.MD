@@ -10,6 +10,42 @@ FQH started with the idea that you can let the client write to a queue node with
 
 It might not be for everybody.
 
+## Recent Changes
+
+### 0.3.0
+
+#### QHManager
+
+Introduced the QHManager object. Makes it even easier to manage groups of queues. 
+
+```js
+var userQueue = QueueManager.createQueue({
+	firebaseRef: ref,
+	name: 'users',
+	handlers: userHandlers,
+	responseKey: 'users'
+});
+```
+
+Includes new functions like 
+
+- `listenOnAllQueues` Be able to construct multiple queues and listen to all of them without listing them all out
+- `getAllQueues` Get all your queues with their names
+- `shutdownAllQueues` Shut down all queues for teardown or reset
+
+#### Global Firebase Ref 
+
+You can now set `QHConfig.firebaseRef` to your database reference and when creating a queue if you do not define `firebaseRef` it will use this global one making it much easier to maintain multiple queues.
+
+#### Examples!
+
+There are two very simple (well that's the point of the library) examples to look at. More complex examples will probably come soon.
+
+#### Other Stuff
+
+- Added some new functions to QHQueue you can use
+
+
 ## Install
 
 ```
@@ -160,6 +196,13 @@ Type: `String`
 Default: `queueResponses`
 
 This is the root node that responses will be written to. You can include it in any part of your project like so: `var QHConfig = require('firebase-qh').QHConfig;`
+
+#### firebaseRef
+
+Type: `Firebase Database Reference`
+Default: `null`
+
+This is the default firebase database reference to use for queues who don't define their own. 
 
 ### Wiring Up The Client
 
@@ -333,6 +376,39 @@ var handlers = {
 
 Now FQH will resolve the queue item and then write the referral code to the response path. We are still returning `false` for the error handler, here you could create an object with a pattern that your app follows to define errors in case the username is taken, profile picture is in an incorrect format, etc. 
 
+### Queue Managers
+
+With 0.3.0 I've introduced the basic concept of a Queue Manager (QHManager). Queue managers simply hold your queues in lists and provide you with a multitude of helper functions. This makes it easy to create a set of queues, listen to a set of queues, and shut them down (with more features coming soon). 
+
+You can create the manager using a shorthand method in your file like `QHManager = new require('./lib/QH/index.js').QHManager()` or if you want to use it and store it somewhere for more of your app to use
+
+```js
+const QHManager = require('./lib/QH/index.js').QHManager;
+
+var QueueManager = new QHManager();
+
+```
+
+Creating a queue takes the same input as `new QHQueue()` and returns the queue object, but with the manager you may not need it.
+
+```js
+var myQueue = QueueManager.createQueue({
+	// Your queue options
+});
+```
+
+Once you have your queues set up you can listen to all of them once authenticated or after waiting for other things to initialize with 
+
+```js
+QueueManager.listenOnAllQueues();
+```
+
+### Pro Tips
+
+#### Use QHQueue without the manager
+
+For whatever reason maybe you don't want to use a manager you can still create queues using the QHQueue object, nothings changed there.
+
 ## Roadmap
 
 What I'm looking at implementing for my own software and that will probably translate into this tool. Issue requests might land here too, who knows!
@@ -346,10 +422,6 @@ Have the tool automatically clean up or retry requests in the queues
 ##### Adding more options
 
 A lot of this stuff can be refactored to be options, so that will probably happen as people request it
-
-##### Global Firebase reference
-
-The ability of setting the queue reference to 'null' and having it use a reference from the global config so that changing references across the application can happen in one line instead of every queue.
 
 ### Ideas
 

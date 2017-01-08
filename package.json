@@ -14,6 +14,11 @@
     "firebase",
     "queue"
   ],
+  "files": [
+    "lib/",
+    "index.js",
+    "README.MD"
+  ],
   "author": "North McCormick <northmccormick@icloud.com> (http://northmccormick.com)",
   "license": "ISC",
   "dependencies": {

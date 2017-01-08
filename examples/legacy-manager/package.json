@@ -1,0 +1,12 @@
+{
+  "name": "firebase-qh-example-legacy",
+  "description": "Firebase Queue Handler Example (Legacy)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "firebase": "^2.4.1",
+    "firebase-qh": "^0.1.0"
+  }
+}
