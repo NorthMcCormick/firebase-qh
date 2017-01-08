@@ -1,4 +1,4 @@
-# ![Logo](https://github.com/northmccormick/firebase-qh/blob/master/logo.png?raw=true)
+# ![Logo](https://github.com/northmccormick/firebase-qh/blob/master/logo.png)
 
 A light weight wrapper for Firebase Queue to give you a slightly opinionated but fast way to use the queue.
 
