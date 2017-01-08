@@ -21,12 +21,19 @@ $ npm install --save firebase-qh
 ```js
 const QHQueue = require('firebase-qh');
 
+var handlers = {
+	someAction: function(res) {
+		res.resolve();
+		return false;
+	}
+};
+
 var userQueue = new QHQueue({
-	debug: true,
 	firebaseRef: ref,
 	name: 'users',
 	handlers: userHandlers,
-	resolveKey: 'usersResolve'
+	resolveKey: 'usersResolve',
+	debug: true
 });
 
 //
@@ -147,8 +154,6 @@ Handlers are the actual logic you write to get your queue to process a request. 
 ```js
 var handlers = {
 	createUser: function(res) {
-		// Do your creating, validating, emailing, etc
-
 		res.resolve();
 
 		return false;
@@ -161,7 +166,7 @@ As you might notice, we already have something we can use: `res`! I have chosen 
 Here is what it looks like:
 
 ```js
-res = {
+{
 	data: { // The data from our request
 		username: 'NorthMcCormick',
 		uid: '2gq9VYiWBKS57WPJsv3sahgKs9v1',
@@ -172,14 +177,114 @@ res = {
 	reject: function(){}, // This is how we reject the request
 	ref: new Firebase(), // This is our Firebase database reference that we set when we created the queue
 	meta: { // This will hold other bits of data we may need
-		queueResolve: 'usersResolve' 
+		resolveKey: 'usersResolve' 
 	}
 }
 ```
 
+Right now our handler doesn't do anything but resolve itself. We want our handler to create a new object in our database that stores this user's information in a secure place where not even they can edit it so that when we send push notifications (for example) we know that we are using the client's real username and not something they may have tampered with.
 
+```js
+var handlers = {
+	createUser: function(res) {
+		res.ref.child('usersPrivate').child(res.data.uid).set({
+			username: res.data.username,
+			profilePicture: res.data.profilePicture
+		}).then(function() {
+			res.resolve();
 
+			return false;
+		}, function(error) {
+			res.reject(error);
+			return false;
+		});
+	}
+}
+```
 
+Excellent! Because this node has no client read/write access we know that the data can't be maliciously changed. This is also the place where you could write in more complex validation. 
+
+We keep returning false, though... Why?
+
+### Queue Resolving
+
+So we set the username and profile picture for this user, but did you see that hidden piece of code that generates them a referral code?
+
+```js
+var handlers = {
+	createUser: function(res) {
+		res.ref.child('usersPrivate').child(res.data.uid).set({
+			username: res.data.username,
+			profilePicture: res.data.profilePicture
+		}).then(function() {
+
+			var referralCode = Utils.generateReferralCode();
+
+			res.resolve();
+
+			return false;
+		}, function(error) {
+			res.reject(error);
+			return false;
+		});
+	}
+}
+```
+
+We need a way to get this referral code back to the client. They're expecting it:
+
+```js
+var requestData = {
+	action: 'createUser',
+	data: {
+		username: 'NorthMcCormick',
+		uid: '2gq9VYiWBKS57WPJsv3sahgKs9v1',
+		profilePicture: 'data:image/png,TG9sIGknbSBpbXByZXNzZWQgeW91IHRvb2sgdGhlIHRpbWUgdG8gZGVjb2RlIHRoaXM='
+	}
+}
+
+var refRequest = ref.child('queue/users/tasks').push();
+refRequest.set(requestData);
+
+// Listen on the resolve node for the referral code to show the user!
+
+var referralRef = ref.child('queueResolves/usersResolve/' + refRequest.key);
+referralRef.on('value', function(snapshot) {
+	console.log('We got the referral code: ' + snapshot.val());
+
+	referralRef.off();
+});
+
+```
+
+*Note that path for the resolve. By default FQH will use `queueResolves` as the root for all the resolves. Earlier we set the option `resolveKey` to `usersResolve`, so as a user that is where we will want to look. If you leave `resolveKey` blank, you should not resolve any data.*
+
+Returning `false`, `null`, or `undefined` here will tell FQH to not write to the resolve path, up to this point we have been doing just that. Lets change it.
+
+```js
+var handlers = {
+	createUser: function(res) {
+		res.ref.child('usersPrivate').child(res.data.uid).set({
+			username: res.data.username,
+			profilePicture: res.data.profilePicture
+		}).then(function() {
+
+			var referralCode = Utils.generateReferralCode();
+
+			res.resolve();
+
+			return {
+				referralCode: referralCode
+			};
+		}, function(error) {
+			res.reject(error);
+			return false;
+		});
+	}
+}
+```
+
+Now FQH will resolve the queue item and then write the referral code to the path. We are still returning `false` for the error handler, here you could create an object with a pattern that your app follows to define errors in case the username is taken, profile picture is in an incorrect format, etc. 
 
 ## Roadmap
 
