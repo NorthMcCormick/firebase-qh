@@ -1,0 +1,26 @@
+{
+  "name": "firebase-qh",
+  "version": "0.1.0",
+  "description": "A simple Firebase Queue wrapper to make it easier to write and manage queues",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NorthMcCormick/firebase-qh.git"
+  },
+  "keywords": [
+    "firebase",
+    "queue"
+  ],
+  "author": "North McCormick <northmccormick@icloud.com> (http://northmccormick.com)",
+  "license": "ISC",
+  "dependencies": {
+    "firebase-queue": "^1.3.0"
+  },
+  "bugs": {
+    "url": "https://github.com/NorthMcCormick/firebase-qh/issues"
+  },
+  "homepage": "https://github.com/NorthMcCormick/firebase-qh#readme"
+}
