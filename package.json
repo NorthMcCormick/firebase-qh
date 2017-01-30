@@ -1,6 +1,6 @@
 {
   "name": "firebase-qh",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A simple Firebase Queue wrapper to make it easier to write and manage queues",
   "main": "index.js",
   "scripts": {
